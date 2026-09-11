@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Minhas Solicitações</h2>
+<a href="{{ url_for('nova_solicitacao') }}" class="btn" style="margin-bottom: 15px;">Criar Nova Solicitação</a>
+<table>
+    <thead>
+        <tr>
+            <th>ID Interno</th>
+            <th>Número</th>
+            <th>Série</th>
+            <th>Tipo</th>
+            <th>Data</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if movimentos %}
+            {% for mov in movimentos %}
+            <tr>
+                <td>{{ mov.internalId }}</td>
+                <td>{{ mov.number }}</td>
+                <td>{{ mov.series }}</td>
+                <td>{{ mov.movementTypeCode }}</td>
+                <td>{{ mov.date[:10] if mov.date else '' }}</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #666;">Nenhum registro encontrado ou falha ao carregar.</td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Criar Solicitação de Compra</h2>
+{% if mensagem %}
+    <div class="{{ 'alert' if sucesso else 'error-alert' }}">{{ mensagem }}</div>
+{% endif %}
+<form method="POST">
+    <div class="form-group">
+        <label>Produto:</label>
+        <input type="text" value="CANETA BIC CRISTAL AZUL (ID: 68650)" disabled>
+    </div>
+    <div class="form-group">
+        <label>Quantidade:</label>
+        <input type="number" name="quantity" value="1" min="1" required>
+    </div>
+    <div class="form-group">
+        <label>Centro de Custo:</label>
+        <input type="text" name="cost_center" value="2.09.002" required>
+    </div>
+    <div class="form-group">
+        <label>Observação / Histórico Longo:</label>
+        <textarea name="long_history" rows="3" required>Solicitação de compra gerada via Web App Flask.</textarea>
+    </div>
+    <button type="submit" class="btn">Enviar Solicitação</button>
+</form>
+{% endblock %}
