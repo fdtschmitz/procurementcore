@@ -11,13 +11,13 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
 
     # Registro dos Blueprints (Controladores)
-    # from app.routes.auth import auth_bp
-    # from app.routes.store import store_bp
+    from app.routes.auth import auth_bp
+    from app.routes.store import store_bp
     # from app.routes.buyer import buyer_bp
     # from app.routes.admin import admin_bp
     
-    # app.register_blueprint(auth_bp, url_prefix='/auth')
-    # app.register_blueprint(store_bp, url_prefix='/')
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(store_bp, url_prefix='/')
     # app.register_blueprint(buyer_bp, url_prefix='/comprador')
     # app.register_blueprint(admin_bp, url_prefix='/admin')
 
