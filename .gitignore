@@ -222,5 +222,8 @@ __marimo__/
 .old
 .old/*
 
+# DB files
+procurement.db
+
 # Secrets
 secrets.json
