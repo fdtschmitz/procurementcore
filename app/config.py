@@ -15,9 +15,11 @@ class Config:
     CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
 
 # Parâmetros da Consulta SQL
-    TOTVS_SQL_COD_SENTENCA = None
+    TOTVS_SQL_COD_PRODUTOS = None
     TOTVS_SQL_COD_COLIGADA = None
     TOTVS_SQL_COD_SISTEMA = None
+    TOTVS_SQL_REQ_CABECALHO = None
+    TOTVS_SQL_REQ_ITENS = None
 
     try:
         with open(os.path.join(BASE_DIR, 'secrets.json'), 'r') as f:
@@ -25,8 +27,10 @@ class Config:
             TOTVS_BASE_URL = secrets.get('base_url')
             TOTVS_SERVICE_USER = secrets.get('service_username')
             TOTVS_SERVICE_PASS = secrets.get('service_password')
-            TOTVS_SQL_COD_SENTENCA = secrets.get('sql_cod_sentenca')
+            TOTVS_SQL_COD_PRODUTOS = secrets.get('sql_cod_produtos')
             TOTVS_SQL_COD_COLIGADA = secrets.get('sql_cod_coligada')
             TOTVS_SQL_COD_SISTEMA = secrets.get('sql_cod_sistema')
+            TOTVS_SQL_REQ_CABECALHO = secrets.get('sql_cod_req_cabecalho')
+            TOTVS_SQL_REQ_ITENS = secrets.get('sql_cod_req_itens')
     except FileNotFoundError:
         pass
