@@ -61,8 +61,7 @@ def executar_consulta_sql_rm(cod_sentenca, offset=0, page_size=100, data_alterac
     }
     
     try:
-        # AQUI ESTÁ A MUDANÇA: Substituímos requests.get por requests.post
-        response = requests.post(
+        response = requests.get(
             url, 
             params={'parameters': parametros_str}, # O RM aceita os parâmetros na query string mesmo no POST
             headers=headers, 

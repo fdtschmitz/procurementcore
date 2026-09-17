@@ -9,9 +9,10 @@ def carga_inicial_produtos():
     offset = 0
     page_size = 100
     total_processado = 0
+    data_alteracao=current_app.config['DATA_ALTERACAO']
     
     while True:
-        dados_rm = obter_produtos_paginados(offset=offset, page_size=page_size)
+        dados_rm = obter_produtos_paginados(offset=offset, page_size=page_size, data_alteracao=data_alteracao)
         
         # Interrompe se a lista vier vazia
         if not dados_rm:
