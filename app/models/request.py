@@ -2,26 +2,29 @@ from app.extensions import db
 from datetime import datetime
 
 class RequestDraft(db.Model):
-    """Armazena o andamento local das solicitações do usuário antes de enviar ao RM"""
+    """Armazena o cabeçalho do carrinho de compras do usuário"""
     __tablename__ = 'request_drafts'
 
     id = db.Column(db.Integer, primary_key=True)
     user_username = db.Column(db.String(100), nullable=False, index=True)
-    product_id = db.Column(db.Integer, nullable=False)
-    quantity = db.Column(db.Integer, default=1)
     cost_center = db.Column(db.String(50))
     observation = db.Column(db.Text)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relação 1:N com os itens do carrinho
+    itens = db.relationship('RequestDraftItem', backref='draft', lazy=True, cascade="all, delete-orphan")
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "productId": self.product_id,
-            "quantity": self.quantity,
-            "costCenter": self.cost_center,
-            "observation": self.observation,
-            "updatedAt": self.updated_at.isoformat()
-        }
+
+class RequestDraftItem(db.Model):
+    """Armazena os produtos adicionados ao carrinho"""
+    __tablename__ = 'request_draft_items'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    draft_id = db.Column(db.Integer, db.ForeignKey('request_drafts.id'), nullable=False)
+    
+    # Salvamos o ID do produto e a quantidade desejada
+    product_id = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Float, default=1)
 
 
 class PurchaseRequest(db.Model):
@@ -63,14 +66,15 @@ class PurchaseRequestItem(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     request_id = db.Column(db.Integer, db.ForeignKey('purchase_requests.id'), nullable=False, index=True)
     
-    coligada = db.Column(db.Integer)             # CODCOLIGADA
-    nseqitmmov = db.Column(db.Integer)           # NSQITMMOV
-    nseq = db.Column(db.Integer)                 # NSEQ
-    codigo_item = db.Column(db.String(50), nullable=False) # COD_PRODUTO
-    descricao_item = db.Column(db.String(255), nullable=False) # PRODUTO
-    quantidade = db.Column(db.Float, nullable=False) # QTD_ORIGINAL
-    nat_op = db.Column(db.String(50))            # NAT_OP
-    centro_custo = db.Column(db.String(50))      # CODCCUSTO
+    coligada = db.Column(db.Integer)             
+    nseqitmmov = db.Column(db.Integer)           
+    nseq = db.Column(db.Integer)                 
+    codigo_item = db.Column(db.String(50), nullable=False) 
+    descricao_item = db.Column(db.String(255), nullable=False) 
+    quantidade = db.Column(db.Float, nullable=False)
+    unidade = db.Column(db.String(10))           
+    nat_op = db.Column(db.String(50))            
+    centro_custo = db.Column(db.String(50))      
 
     def to_dict(self):
         return {
@@ -79,6 +83,7 @@ class PurchaseRequestItem(db.Model):
             "codigo": self.codigo_item,
             "nome": self.descricao_item,
             "quantidade": self.quantidade,
+            "unidade": self.unidade,
             "nat_op": self.nat_op,
             "centro_custo": self.centro_custo
         }

@@ -2,12 +2,13 @@ from datetime import datetime
 from app.extensions import db
 from app.models.product import Product
 from app.models.request import PurchaseRequest, PurchaseRequestItem
+from app.models.costcenter import CostCenter
 from app.services.totvs_api import obter_produtos_paginados, executar_consulta_sql_rm
 from flask import current_app
 
 def carga_inicial_produtos():
     offset = 0
-    page_size = 100
+    page_size = 500
     total_processado = 0
     data_alteracao=current_app.config['DATA_ALTERACAO']
     
@@ -47,6 +48,7 @@ def carga_inicial_produtos():
             break
             
         offset += page_size
+        print(f"Carga em progresso: {total_processado} produtos sincronizados.")
         
     print(f"Carga inicial concluída: {total_processado} produtos sincronizados.")
 
@@ -111,11 +113,11 @@ def sincronizar_solicitacoes_rm(data_ultima_sync=None):
     sentenca_itens = current_app.config['TOTVS_SQL_REQ_ITENS']
     
     page_size = 100
-    
+    offset = 0
+    solicitacao_carregada = 0
     # ---------------------------------------------------------
     # 1. PROCESSAR CABEÇALHOS (INTER.001.2)
     # ---------------------------------------------------------
-    offset = 0
     while True:
         dados_cabecalho = executar_consulta_sql_rm(
             cod_sentenca=sentenca_cabecalho, 
@@ -137,9 +139,13 @@ def sincronizar_solicitacoes_rm(data_ultima_sync=None):
                 req = PurchaseRequest(id=id_mov)
                 db.session.add(req)
             
-            # Use 'NUMERO' caso adicione TMOV.NUMEROMOV na query. 
-            # Fallback para string vazia para evitar erro de NOT NULL.
-            req.numero = row.get('NUMERO', f"SC-{id_mov}") 
+            numero_mov = row.get('NUMEROMOV')
+            if numero_mov:
+                # O .lstrip('0') remove todos os zeros à esquerda. 
+                # O "or '0'" garante que se o número for "000", ele retorne "0" e não vazio.
+                req.numero = numero_mov.lstrip('0') or '0'
+            else:
+                req.numero = f"SC-{id_mov}"
             
             # Conversão de string de data do RM para objeto datetime (Date) do Python
             raw_date = row.get('DATA_EMISSAO')
@@ -168,15 +174,21 @@ def sincronizar_solicitacoes_rm(data_ultima_sync=None):
             req.status_concluido = row.get('STATUS_CONCLUIDO')
             
         db.session.commit()
-        
+
+        solicitacao_carregada += len(dados_cabecalho)
+
         if len(dados_cabecalho) < page_size:
             break
         offset += page_size
+
+    print(f"Total de {solicitacao_carregada} Solicitações sincronizadas.")
+
 
     # ---------------------------------------------------------
     # 2. PROCESSAR ITENS (INTER.001.3)
     # ---------------------------------------------------------
     offset = 0
+    itens_carregados = 0
     while True:
         dados_itens = executar_consulta_sql_rm(
             cod_sentenca=sentenca_itens, 
@@ -215,11 +227,52 @@ def sincronizar_solicitacoes_rm(data_ultima_sync=None):
             item.nseq = row.get('NSEQ')
             item.nat_op = row.get('NAT_OP')
             item.centro_custo = row.get('CENTRO_CUSTO')
+            item.unidade = row.get('UNIDADE')
             
         db.session.commit()
-        
+
+        itens_carregados += len(dados_itens)
         if len(dados_itens) < page_size:
             break
         offset += page_size
+    print(f"Total de {itens_carregados} itens sincronizadas.")
 
     print("Sincronização de solicitações e itens concluída com sucesso!")
+
+def sincronizar_centros_custo_rm():
+    """
+    Sincroniza os Centros de Custo analíticos do TOTVS RM.
+    """
+    sentenca_cc = current_app.config['TOTVS_SQL_CENTRO_CUSTO']
+    offset = 0
+    page_size = 100
+    
+    while True:
+        dados_cc = executar_consulta_sql_rm(
+            cod_sentenca=sentenca_cc, 
+            offset=offset, 
+            page_size=page_size
+        )
+        
+        if not dados_cc:
+            break
+            
+        for row in dados_cc:
+            codigo = row.get('CODIGO')
+            if not codigo:
+                continue
+                
+            cc = CostCenter.query.get(codigo)
+            if not cc:
+                cc = CostCenter(codigo=codigo)
+                db.session.add(cc)
+                
+            cc.descricao = row.get('DESCRICAO')
+            
+        db.session.commit()
+        
+        if len(dados_cc) < page_size:
+            break
+        offset += page_size
+
+    print("Sincronização de Centros de Custo concluída com sucesso!")

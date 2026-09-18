@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Meu Carrinho - Portal de Compras</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        header { background: white; padding: 15px 30px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; }
+        
+        .cart-items { flex: 2; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .cart-items h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        
+        .item-row { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .item-img { width: 60px; height: 60px; object-fit: contain; background: #f8f9fa; border-radius: 4px; margin-right: 15px; }
+        .item-details { flex: 1; }
+        .item-code { font-size: 12px; color: #888; }
+        .item-title { font-size: 15px; font-weight: 600; color: #333; margin: 5px 0; }
+        
+        .item-actions { display: flex; align-items: center; gap: 15px; }
+        .qtd-input { width: 60px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; text-align: center; }
+        .btn-remove { color: #dc3545; background: none; border: none; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-remove:hover { text-decoration: underline; }
+
+        .summary { flex: 1; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); height: fit-content; }
+        .summary h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .summary-info { font-size: 14px; color: #555; margin-bottom: 20px; line-height: 1.6; }
+        
+        .btn-finish { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; }
+        .btn-finish:hover { background: #218838; }
+        
+        .empty-cart { text-align: center; padding: 40px 0; color: #666; }
+    </style>
+</head>
+<body>
+    <header>
+        <div><strong>Catálogo de Compras</strong></div>
+        <div>
+            <a href="{{ url_for('store.loja') }}" style="text-decoration: none; color: #555;">Continuar Comprando</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="cart-items">
+            <h3>Itens Selecionados</h3>
+            
+            {% if itens %}
+                {% for item in itens %}
+                <div class="item-row" id="row-{{ item.item_id }}">
+                    <img src="{{ url_for('static', filename='img/produtos/' + item.codigo + '.jpg') }}" 
+                         onerror="this.src='{{ url_for('static', filename='img/placeholder.png') }}'"
+                         alt="Produto" class="item-img">
+                    <div class="item-details">
+                        <div class="item-code">{{ item.codigo }}</div>
+                        <div class="item-title">{{ item.descricao }}</div>
+                    </div>
+                    <div class="item-actions">
+                        <input type="number" class="qtd-input" value="{{ item.quantidade }}" min="1" step="1" 
+                               onchange="atualizarQuantidade({{ item.item_id }}, this.value)">
+                        <button class="btn-remove" onclick="removerItem({{ item.item_id }})">Remover</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-cart">
+                    <p>Seu carrinho está vazio.</p>
+                    <a href="{{ url_for('store.loja') }}" style="color: #007bff; text-decoration: none;">Voltar para a loja</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="summary">
+            <h3>Resumo da Solicitação</h3>
+            {% if draft %}
+            <div class="summary-info">
+                <strong>Centro de Custo:</strong><br>
+                {{ draft.cost_center }}<br><br>
+                <strong>Justificativa:</strong><br>
+                {{ draft.observation }}
+            </div>
+            <!-- O envio final para o ERP será implementado no próximo passo -->
+            <button class="btn-finish" onclick="alert('Integração com TOTVS RM será iniciada aqui!')" {% if not itens %}disabled style="background: #ccc;"{% endif %}>
+                Finalizar Pedido
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function atualizarQuantidade(itemId, novaQtd) {
+            fetch('/api/carrinho/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item_id: itemId, quantidade: novaQtd })
+            }).then(response => {
+                if (!response.ok) alert('Erro ao atualizar quantidade.');
+            });
+        }
+
+        function removerItem(itemId) {
+            if(confirm('Tem certeza que deseja remover este item?')) {
+                fetch('/api/carrinho/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ item_id: itemId })
+                }).then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        // Remove a linha visualmente
+                        document.getElementById('row-' + itemId).remove();
+                        // Se não houver mais itens, recarrega a página para mostrar mensagem de carrinho vazio
+                        if(document.querySelectorAll('.item-row').length === 0) {
+                            window.location.reload();
+                        }
+                    } else {
+                        alert('Erro ao remover item.');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

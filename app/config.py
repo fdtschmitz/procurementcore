@@ -20,6 +20,7 @@ class Config:
     TOTVS_SQL_COD_SISTEMA = None
     TOTVS_SQL_REQ_CABECALHO = None
     TOTVS_SQL_REQ_ITENS = None
+    TOTVS_SQL_CENTRO_CUSTO = None
     DATA_ALTERACAO = None
 
     try:
@@ -33,6 +34,7 @@ class Config:
             TOTVS_SQL_COD_SISTEMA = secrets.get('sql_cod_sistema')
             TOTVS_SQL_REQ_CABECALHO = secrets.get('sql_cod_req_cabecalho')
             TOTVS_SQL_REQ_ITENS = secrets.get('sql_cod_req_itens')
+            TOTVS_SQL_CENTRO_CUSTO = secrets.get('sql_cod_centro_custo')
             DATA_ALTERACAO = secrets.get('data_alteracao')
     except FileNotFoundError:
         pass

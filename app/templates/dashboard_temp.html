@@ -57,7 +57,7 @@
 
     <div class="container">
         <div class="actions-grid">
-            <a href="#" class="action-card">
+            <a href="{{ url_for('store.nova_solicitacao') }}" class="action-card">
                 <h3>Nova Solicitação de Compra</h3>
                 <p>Pesquise produtos e inicie um novo pedido.</p>
             </a>
@@ -72,7 +72,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Número</th>
+                        <th>Solicitação</th>
                         <th>Data de Emissão</th>
                         <th>Descrição</th>
                         <th>Status</th>
@@ -101,8 +101,8 @@
                                 <table class="items-table">
                                     <thead>
                                         <tr>
-                                            <th>Cód. Produto</th>
-                                            <th>Nome do Produto</th>
+                                            <th>Código</th>
+                                            <th>Descrição</th>
                                             <th>Quantidade</th>
                                             <th>Unidade</th>
                                         </tr>
